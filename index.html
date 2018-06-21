@@ -1,0 +1,272 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+
+
+</head>
+
+
+<body>
+  <h2> Тестовое задание для летней школы RBKmoney </h2>
+  <p>Мерило успеха в Гильдии - прибыль, которую торговец заработал за последний год. В конце каждого года 20% самых неуспешных торговцев с позором исключают из Гильдии, а их место занимает ровно столько же новых, которые копируют поведение 20% самых успешных членов Гильдии.</p></br>
+  <input type="button" onclick="run(false)" value="Отбирать успешных!"/>
+  <h3> Дополнительное задание </h3>
+  <p>Мы видим, что общая прибыль приходит в упадок. Так, как дополнительная информация о торговцах от нас скрыта,
+  действуем следующим образом. На свой риск и страх, мы действует в точности наоборот. Заменяем самых успешных троговцев,
+  самыми неуспешными. </p></br>
+  <input type="button" onclick="run(true)" value="Отбирать самых неуспешнхых вместо успешных"/>
+</body>
+</html>
+
+<script>
+
+const deal_MAX = 10;
+const deal_MIN = 5;
+
+var characters = [ 'резерв',
+				'альтурист', 
+				'кидала', 
+				'хитрец', 
+				'непредсказуемый',
+				'злопамятный',
+				'ушлый'
+				];
+
+
+//const altruist	= 1; //альтурист
+//const deceiver	= 2; //кидала
+//const dodger	    = 3; //хитрец
+//const random 	    = 4; //непредсказуемый
+//const resentful	= 5; //злопамятный
+//const quirky	    = 6; //ушлый
+
+
+
+var total = 0;
+var dealer = []; 
+
+// заполним массив Гильдии 
+for (var i = 0; i < 60; i++) {
+		dealer[i] = {
+			character: Math.floor(i/10) + 1,
+			deals: 0,
+			money: 0,
+			efficiency: 0
+		};
+		//console.log(dealer[i].character+ '=' + dealer.length);
+		//console.log(dealer.length);
+}
+
+function getBehavior(dealer, response){
+	var honesty = false;
+	var quirky_ans = [true, false, true, true];
+	var lied = (((getMoney(dealer)/getDeals(dealer)) < 4) && getDeals(dealer)>0);
+	var character = getCharacter(dealer);
+
+	switch (character) {
+  case 1:
+    honesty = true;
+    break;
+  case 2:
+    honesty = false;
+    break;
+  case 3:
+    honesty = (response === true);
+    break;
+  case 4:
+    honesty = getRandomInt(0,2) > 0 ? true : false;
+    break;
+  case 5:
+    honesty = lied ? false : true;
+    break;
+  case 6:
+      if(getDeals(dealer) < 5) {
+       honesty = quirky_ans[getDeals(dealer)];
+       //console.log(quirky_ans[getDeals(dealer)]);
+       //console.log(honesty); 
+       } 
+    	else {lied ? honesty = false : honesty = (response === true);};
+    break;	  
+
+  default:
+    alert( 'Я таких значений не знаю' );
+	}
+	// вносим ошибку - 5%
+	if(getRandomInt(0,100) < 5) honesty = !honesty; 
+	return honesty;
+}
+
+function getCharacter(i){
+	return dealer[i].character; 
+}
+
+function getDeals(i){
+	return dealer[i].deals; 
+}
+
+function getMoney(i){
+	return dealer[i].money; 
+}
+
+function getEff(i){
+	return dealer[i].efficiency; 
+}
+
+function getRandomInt(min, max) {
+  	return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function setDeals(i){
+	dealer[i].deals++;
+}
+
+function setMoney(i, money){
+	dealer[i].money += money;
+}
+
+function callEffiency(){
+	
+	for (var i = 0; i < dealer.length; i++) {
+		dealer[i].efficiency = (dealer[i].money / dealer[i].deals).toFixed(1);
+		total += dealer[i].money;
+	}
+
+    return total;	 
+}
+
+
+function pay(dealer1, dealer2, result1, result2){
+	if ((result1 === true)&&(result2 === true))
+	{
+		setMoney(dealer1, 4);
+		setMoney(dealer2, 4);
+	}
+	else if((result1 === false)&&(result2 === false))
+	{
+		setMoney(dealer1, 2);
+		setMoney(dealer2, 2);
+	}
+
+	else if((result1 === true)&&(result2 === false))
+	{
+		setMoney(dealer1, 1);
+		setMoney(dealer2, 5);
+	}
+
+	else
+	{
+		setMoney(dealer1, 5);
+		setMoney(dealer2, 1);
+	}
+
+	setDeals(dealer1);
+	setDeals(dealer2);
+}
+
+function getDealer(){
+	var i=0;
+	do{
+	i = getRandomInt(0 ,dealer.length);}
+	while( dealer[i].deals > deal_MAX - 1);
+	return i;
+}
+
+var replace = function (inverse = false) {
+
+	var min_arr = [0,0,0,0,0,0,0,0,0,0,0,0],
+		max_arr = [0,0,0,0,0,0,0,0,0,0,0,0];
+
+for (var i = 0; i < 12; i++){
+	var min_id = 0,max_id = 0;
+	var min = getMoney(0);
+	var max = getMoney(0);
+
+	for (var j = 0; j < dealer.length; j++) {
+		     var eff = getMoney(j); 
+		     if (max < eff) { max = eff; max_id = j;}
+		     else if (min > eff && eff >0) { min = eff; min_id = j;}
+		     } 
+	if (inverse) dealer[max_id].character = dealer[min_id].character;
+	else dealer[min_id].character = dealer[max_id].character;		     
+	min_arr[i] = min_id; dealer[min_id].money = 0; 
+	max_arr[i] = max_id; dealer[max_id].money = 0; 	     
+}
+   return [min_arr, max_arr];
+};
+
+
+var getMinDeals = function () {
+	var min = getDeals(0);
+	var id = 0;
+	for (var i = 0; i < dealer.length; i++) {
+		if((getDeals(i) > 0) && (getDeals(i) < min))  {min = dealer[i].deals; id = i;} 
+	} 
+   return [min, id];
+};
+
+
+function clear(){
+	for (var i = 0; i < dealer.length; i++) {
+		dealer[i].deals = 0;
+		dealer[i].money = 0;
+		dealer[i].efficiency = 0; 
+	}
+	total = 0; 
+}
+
+function year() {
+	for (var i = 0; i < 250; i++) {
+ 		deal(getDealer());
+ 	} 
+
+	do{
+		var [min, id] = getMinDeals();
+		deal(id);
+	} while(min < deal_MIN); 	
+}
+
+
+function run(inverse){
+for (var i = 0; i < 100; i++) {
+	year();
+	document.write( 'Прибыль = ' + callEffiency() + ' | ');
+	//show();
+	console.log(replace(inverse));
+	clear(); 
+}
+	show();
+}
+
+function deal(dealer1){ 
+
+	var result1,result2 = false;
+	var dealer2 = 0;
+	
+	do {
+		dealer2 = getDealer();
+		} while(dealer1 === dealer2);  
+	
+	result1 = getBehavior(dealer1, true);
+	result2 = getBehavior(dealer2, result1);
+	
+    pay(dealer1, dealer2, result1, result2);
+	/*console.log(characters[dealer[dealer1].character] + '(' + dealer1 + ') = $' +
+	getMoney(dealer1) + ' сделка с ' + characters[dealer[dealer2].character] +'(' + dealer2 +') = $' + getMoney(dealer2));
+	*/
+} 
+
+function show(){	
+var count = dealer.length;
+var table = document.createElement('table');
+document.write('<div className="tracks-table"><table className="table">');
+for (var i = 0; i < count; i++) {
+  var id = i;
+  var name = characters[dealer[i].character];
+    document.write('<tr><td>' + id + '</td><td>' + name + '</td></tr>');
+}
+document.write('</table></div>');
+}
+
+</script>
+
